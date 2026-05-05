@@ -53,6 +53,29 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Attempt to authenticate the request's credentials, API version.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function authenticateApi(): string
+    {
+        $this->ensureIsNotRateLimited();
+
+        /** @var string|false $token */
+        if (! $token = Auth::guard('api')->attempt($this->only('email', 'password'))) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        RateLimiter::clear($this->throttleKey());
+
+        return $token;
+    }
+
+    /**
      * Ensure the login request is not rate limited.
      *
      * @throws \Illuminate\Validation\ValidationException

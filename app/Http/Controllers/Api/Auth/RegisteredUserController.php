@@ -31,9 +31,9 @@ class RegisteredUserController extends Controller
         $enterprise = Enterprise::all()->firstWhere('code', $request->enterprise_code);
 
         if (! $enterprise) {
-            return response(status: 422)->json([
-                'message' => 'No se ha encontrado empresa con código: '.$request->enterprise_code
-            ]);
+            return response()->json([
+                'message' => 'No se ha encontrado una empresa con el código: '.$request->enterprise_code
+            ], 422);
         }
 
         $user = User::create([
@@ -45,10 +45,9 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
-
         return response()->json([
-            'message' => 'Usuario Creado Correctamente'
-        ]);
+            'message' => 'Usuario registrado exitosamente.',
+            'user' => $user
+        ], 201);
     }
 }
